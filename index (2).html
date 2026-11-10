@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IMEI Tracker</title>
+<style>
+:root{--bg:#eef3f2;--card:#fff;--ink:#12302e;--mute:#5b7370;--line:#cfdcda;--accent:#0a8f7f;--on:#fff;--bad:#d6362b;--ok:#13813f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1f1e;--card:#15302d;--ink:#e4f2ef;--mute:#8fb0ab;--line:#244844;--accent:#2fd0bb;--on:#06201c;--bad:#ff7a6e;--ok:#5fd98a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1f1e;--card:#15302d;--ink:#e4f2ef;--mute:#8fb0ab;--line:#244844;--accent:#2fd0bb;--on:#06201c;--bad:#ff7a6e;--ok:#5fd98a;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.radar{width:52px;height:52px;border-radius:50%;border:2px solid var(--accent);position:relative;flex:none;background:radial-gradient(circle,var(--accent) 0 4px,transparent 5px)}
+.radar::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--accent);animation:ping 2.4s ease-out infinite}
+@keyframes ping{from{transform:scale(1);opacity:.8}to{transform:scale(1.9);opacity:0}}
+@media (prefers-reduced-motion:reduce){.radar::after{animation:none}}
+h1{font-size:1.5rem;margin:0;letter-spacing:-.01em}
+header p{margin:2px 0 0;color:var(--mute);font-size:.9rem}
+nav{display:flex;gap:6px;margin-bottom:16px;background:var(--card);padding:5px;border-radius:14px;border:1px solid var(--line)}
+nav button{flex:1;border:0;background:none;color:var(--mute);font:inherit;font-weight:600;padding:10px 4px;border-radius:10px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--accent);color:var(--on)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+section{display:none}
+section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+label:first-child{margin-top:0}
+input{width:100%;font:inherit;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.btn{display:inline-block;border:0;background:var(--accent);color:var(--on);font:inherit;font-weight:700;padding:12px 16px;border-radius:10px;cursor:pointer;margin-top:12px;text-decoration:none}
+.btn.alt{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn.bad{background:var(--bad);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.row .btn{margin-top:10px;padding:10px 12px;font-size:.9rem}
+.msg{margin-top:12px;font-weight:600}
+.ok{color:var(--ok)}.err{color:var(--bad)}
+.tip{color:var(--mute);font-size:.9rem;margin:10px 0 0}
+.phone h3{margin:0;font-size:1.1rem}
+.phone .imei{font-variant-numeric:tabular-nums;color:var(--mute);letter-spacing:.04em}
+.tag{display:inline-block;font-size:.8rem;font-weight:700;padding:2px 10px;border-radius:99px;margin-left:8px;background:var(--line);color:var(--ink)}
+.tag.lost{background:var(--bad);color:#fff}
+.loc{margin:10px 0 0;font-size:.92rem}
+.empty{text-align:center;color:var(--mute);padding:24px 8px}
+.alert{border-color:var(--bad)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="radar" aria-hidden="true"></div>
+  <div><h1>IMEI Tracker</h1><p>Phone check, register aur track</p></div>
+</header>
+
+<nav role="tablist">
+  <button role="tab" data-t="check" aria-selected="true">Check</button>
+  <button role="tab" data-t="reg" aria-selected="false">Register</button>
+  <button role="tab" data-t="mine" aria-selected="false">My phones</button>
+  <button role="tab" data-t="track" aria-selected="false">Track</button>
+</nav>
+
+<section id="check" class="on">
+  <div class="card">
+    <label for="ci">IMEI number</label>
+    <input id="ci" inputmode="numeric" maxlength="15" placeholder="15 digit IMEI">
+    <button class="btn" id="cbtn">Check IMEI</button>
+    <div class="msg" id="cmsg" aria-live="polite"></div>
+    <p class="tip">IMEI dekhne ke liye phone ke dialer mein *#06# dial karo.</p>
+  </div>
+</section>
+
+<section id="reg">
+  <div class="card">
+    <label for="rn">Owner ka naam</label>
+    <input id="rn" placeholder="Satyam">
+    <label for="rm">Phone model</label>
+    <input id="rm" placeholder="Redmi Note 12">
+    <label for="ri">IMEI number</label>
+    <input id="ri" inputmode="numeric" maxlength="15" placeholder="15 digit IMEI">
+    <button class="btn" id="rbtn">Save phone</button>
+    <div class="msg" id="rmsg" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="mine"><div id="list"></div></section>
+
+<section id="track">
+  <div class="card">
+    <label for="ti">IMEI number</label>
+    <input id="ti" inputmode="numeric" maxlength="15" placeholder="Register kiya hua IMEI daalo">
+    <button class="btn" id="tbtn">Find phone</button>
+    <p class="tip">Chori hua phone mark lost karke Sanchar Saathi par block zaroor karao.</p>
+  </div>
+  <div id="tres"></div>
+</section>
+</main>
+
+<script>
+(function(){
+var phones=[];
+try{phones=JSON.parse(localStorage.getItem("imei_phones")||"[]");}catch(e){phones=[];}
+function save(){try{localStorage.setItem("imei_phones",JSON.stringify(phones));}catch(e){}}
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function luhn(s){var sum=0;for(var i=0;i<15;i++){var d=+s[14-i];if(i%2===1){d*=2;if(d>9)d-=9;}sum+=d;}return sum%10===0;}
+function verdict(s){
+  if(!/^\d{15}$/.test(s))return {ok:false,t:"IMEI mein poore 15 digit hone chahiye."};
+  if(!luhn(s))return {ok:false,t:"Ye IMEI galat hai (checksum match nahi hua)."};
+  return {ok:true,t:"IMEI ka format sahi hai."};
+}
+function show(r,el){el.className="msg "+(r.ok?"ok":"err");el.textContent=r.t;}
+
+document.querySelectorAll("nav button").forEach(function(b){
+  b.addEventListener("click",function(){
+    document.querySelectorAll("nav button").forEach(function(x){x.setAttribute("aria-selected",x===b?"true":"false");});
+    document.querySelectorAll("section").forEach(function(s){s.classList.toggle("on",s.id===b.dataset.t);});
+    if(b.dataset.t==="mine")renderList();
+  });
+});
+
+$("cbtn").addEventListener("click",function(){
+  var v=verdict($("ci").value.trim());
+  var known=phones.some(function(p){return p.imei===$("ci").value.trim();});
+  if(v.ok&&known)v.t+=" Ye phone tumhare registered phones mein hai.";
+  show(v,$("cmsg"));
+});
+
+$("rbtn").addEventListener("click",function(){
+  var imei=$("ri").value.trim(),name=$("rn").value.trim(),model=$("rm").value.trim();
+  var v=verdict(imei);
+  if(!v.ok){show(v,$("rmsg"));return;}
+  if(!name||!model){show({ok:false,t:"Naam aur phone model dono bharo."},$("rmsg"));return;}
+  if(phones.some(function(p){return p.imei===imei;})){show({ok:false,t:"Ye IMEI pehle se registered hai."},$("rmsg"));return;}
+  phones.push({imei:imei,name:name,model:model,lost:false,lat:null,lng:null,at:null});
+  save();
+  $("ri").value="";$("rn").value="";$("rm").value="";
+  show({ok:true,t:"Phone save ho gaya. My phones tab mein dekho."},$("rmsg"));
+});
+
+function card(p,i){
+  var h='<div class="card phone'+(p.lost?' alert':'')+'"><h3>'+esc(p.model)+'<span class="tag'+(p.lost?' lost':'')+'">'+(p.lost?'Lost':'Safe')+'</span></h3>';
+  h+='<div class="imei">'+esc(p.imei)+'</div><div>Owner: '+esc(p.name)+'</div>';
+  if(p.lat!==null){
+    h+='<p class="loc">Last location: '+p.lat.toFixed(5)+', '+p.lng.toFixed(5)+'<br>'+esc(new Date(p.at).toLocaleString())+'</p>';
+  }else{
+    h+='<p class="loc">Abhi tak koi location save nahi hui.</p>';
+  }
+  h+='<div class="row" data-i="'+i+'">';
+  h+='<button class="btn" data-a="loc">Update location</button>';
+  if(p.lat!==null)h+='<a class="btn alt" target="_blank" rel="noopener" href="https://www.google.com/maps?q='+p.lat+','+p.lng+'">Map kholo</a>';
+  h+='<button class="btn '+(p.lost?'alt':'bad')+'" data-a="lost">'+(p.lost?'Mil gaya':'Mark lost')+'</button>';
+  h+='<button class="btn alt" data-a="del">Delete</button></div>';
+  if(p.lost)h+='<p class="tip">Police complaint karo aur <a href="https://sancharsaathi.gov.in" target="_blank" rel="noopener">Sanchar Saathi</a> par phone block karao.</p>';
+  return h+'</div>';
+}
+
+function bind(root){
+  root.querySelectorAll(".row").forEach(function(row){
+    row.addEventListener("click",function(e){
+      var a=e.target.dataset&&e.target.dataset.a;if(!a)return;
+      var p=phones[+row.dataset.i];if(!p)return;
+      if(a==="lost"){p.lost=!p.lost;save();refresh();}
+      else if(a==="del"){phones.splice(+row.dataset.i,1);save();refresh();}
+      else if(a==="loc"){
+        if(!navigator.geolocation){alert("Is browser mein location available nahi hai.");return;}
+        e.target.textContent="Dhundh raha hoon...";
+        navigator.geolocation.getCurrentPosition(function(pos){
+          p.lat=pos.coords.latitude;p.lng=pos.coords.longitude;p.at=Date.now();save();refresh();
+        },function(){
+          e.target.textContent="Update location";
+          alert("Location nahi mili. Browser mein location permission allow karo.");
+        },{enableHighAccuracy:true,timeout:15000});
+      }
+    });
+  });
+}
+
+function renderList(){
+  var el=$("list");
+  if(!phones.length){el.innerHTML='<div class="card empty">Koi phone registered nahi hai. Register tab mein apna pehla phone jodo.</div>';return;}
+  el.innerHTML=phones.map(card).join("");
+  bind(el);
+}
+var lastTrack="";
+function renderTrack(){
+  var el=$("tres");
+  if(!lastTrack){el.innerHTML="";return;}
+  var i=phones.findIndex(function(p){return p.imei===lastTrack;});
+  if(i<0){el.innerHTML='<div class="card empty">Is IMEI ka koi phone registered nahi mila.</div>';return;}
+  el.innerHTML=card(phones[i],i);bind(el);
+}
+function refresh(){renderList();renderTrack();}
+$("tbtn").addEventListener("click",function(){lastTrack=$("ti").value.trim();renderTrack();});
+renderList();
+})();
+</script>
+</body>
+</html>
